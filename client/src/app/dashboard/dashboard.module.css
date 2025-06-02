@@ -144,31 +144,31 @@
 /* Content Grid */
 .contentGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 240px);
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
   max-width: 1200px;
 }
 
 /* Card Styles */
 .card {
   background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 200px;
+  min-height: 240px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
   position: relative;
   overflow: hidden;
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   border-color: #DD88CF;
 }
 
@@ -236,11 +236,137 @@
 /* Create Card - Narrower Width */
 .createCard {
   max-width: 240px;
+  background-color: #f5f0ff; /* Light purple background */
+  min-width: 200px;
+  transition: all 0.3s ease;
 }
 
-/* Launch Page Card Styles - Compact Version */
+.createCard:hover svg {
+  
+  stroke: #4B164C;
+}
+
+/* Launch Page Card Styles - Prototype Version */
 .launchPageCard {
   max-width: 240px;
+  min-width: 200px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.previewFrame {
+  width: 100%;
+  height: 180px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  font-size: 16px;
+  color: #888;
+  background-color: white;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.previewFrame:hover {
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.08);
+  transform: scale(1.02);
+}
+
+.previewIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.previewIframe.loaded {
+  opacity: 1;
+}
+
+.previewOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  z-index: 1;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.previewFrame:hover .previewOverlay {
+  background-color: rgba(0, 0, 0, 0.03);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.08);
+}
+
+.previewLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #666;
+  background: linear-gradient(120deg, #f9f9f9 30%, #ffffff 38%, #ffffff 40%, #f9f9f9 48%);
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  animation: shimmer 2s infinite;
+  border-radius: 8px;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.loadingSpinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(101, 99, 255, 0.15);
+  border-radius: 50%;
+  border-top-color: #DD88CF;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 4px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.projectName {
+  font-size: 16px;
+  color: #333;
+  text-align: center;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  padding: 8px 0;
 }
 
 .pageHeader {
@@ -453,6 +579,69 @@
   font-weight: 500;
   color: var(--color-brown);
   margin-bottom: 8px;
+}
+
+.dropdownButton {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #fff;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.dropdownButton:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px rgba(33, 32, 156, 0.1);
+}
+
+.dropdownButton:hover {
+  border-color: var(--color-blue);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-top: 4px;
+  z-index: 10;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.dropdownItem {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdownItem:hover {
+  background-color: #f9fafb;
+}
+
+.colorPaletteSample {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.colorSample {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .button {

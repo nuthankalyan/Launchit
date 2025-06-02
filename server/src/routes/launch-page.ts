@@ -13,8 +13,9 @@ router.delete('/:id', auth, launchPageController.deleteLaunchPage);
 router.post('/:id/regenerate', auth, launchPageController.regenerateLaunchPage);
 router.post('/:id/publish', auth, launchPageController.publishLaunchPage);
 
-// Public route for serving HTML content
+// Public routes for serving HTML content
 router.get('/:id/preview', launchPageController.getLaunchPageHtml);
+router.get('/published/:slug', launchPageController.getPublishedPage);
 
 export { router as launchPageRouter };
 export default router;

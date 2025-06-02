@@ -13,7 +13,7 @@ export const launchPageController = {
   // Create a new launch page
   createLaunchPage: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const { name, description, tagline } = req.body;
+      const { name, description, tagline, colorPalette, theme } = req.body;
       const userId = req.user?.id;
 
       if (!userId) {
@@ -36,7 +36,9 @@ export const launchPageController = {
         userId,
         name: name.trim(),
         description: description?.trim(),
-        tagline: tagline?.trim()
+        tagline: tagline?.trim(),
+        colorPalette: colorPalette?.trim(),
+        theme: theme?.trim()
       });
 
       res.status(201).json({
@@ -427,7 +429,6 @@ export const launchPageController = {
       });
     }
   },
-
   // Get a published launch page by slug
   getPublishedPage: async (req: Request, res: Response): Promise<void> => {
     try {
@@ -436,18 +437,28 @@ export const launchPageController = {
       const launchPage = await launchPageService.getPublishedPageBySlug(slug);
 
       if (!launchPage) {
-        res.status(404).send('<html><body><h1>Published page not found</h1></body></html>');
+        res.status(404).json({
+          success: false,
+          message: 'Published page not found'
+        });
         return;
       }
 
-      // Set headers to ensure proper rendering
-      res.setHeader('Content-Type', 'text/html');
-      
-      // Send the HTML content
-      res.status(200).send(launchPage.htmlContent);
+      // Send the page data as JSON
+      res.status(200).json({
+        success: true,
+        data: {
+          name: launchPage.name,
+          htmlContent: launchPage.htmlContent,
+          publishSlug: launchPage.publishSlug
+        }
+      });
     } catch (error: any) {
       console.error('Error serving published page:', error);
-      res.status(500).send('<html><body><h1>Server Error</h1></body></html>');
+      res.status(500).json({
+        success: false,
+        message: 'Server Error'
+      });
     }
   }
 };

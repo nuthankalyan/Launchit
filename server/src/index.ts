@@ -51,9 +51,6 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 // API Routes
 app.use('/api', routes);
 
-// Route for published pages
-app.get('/:slug', launchPageController.getPublishedPage);
-
 // 404 Not Found handler for undefined routes
 app.use(notFound);
 

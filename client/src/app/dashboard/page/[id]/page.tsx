@@ -281,10 +281,7 @@ export default function LaunchPageView() {
                   <path d="M12 22V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M12 7H16.5C17.4283 7 18.3185 6.63125 18.9749 5.97487C19.6313 5.3185 20 4.42826 20 3.5C20 2.57174 19.6313 1.6815 18.9749 1.02513C18.3185 0.368749 17.4283 0 16.5 0C12 0 12 7 12 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-              </button>
-            ) : (
-              <>
-                <span className={styles.publishedBadge}>Published</span>
+              </button>            ) : (
                 <a 
                   href={apiClient.getPublishedPageUrl(launchPage.publishSlug || '')} 
                   target="_blank" 
@@ -298,7 +295,6 @@ export default function LaunchPageView() {
                     <path d="M20 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </a>
-              </>
             )}
           </div>
         )}
@@ -345,7 +341,7 @@ export default function LaunchPageView() {
             </div>
             <div className={styles.modalContent}>
               <p>Choose a unique URL path for your published page:</p>              <div className={styles.urlPreview}>
-                <span className={styles.urlBase}>localhost:5000/</span>
+                <span className={styles.urlBase}>localhost:3000/</span>
                 <input
                   type="text"
                   value={publishSlug}

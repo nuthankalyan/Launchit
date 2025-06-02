@@ -6,6 +6,8 @@ export interface ILaunchPage {
   name: string;
   description?: string;
   tagline?: string;
+  colorPalette?: string;
+  theme?: string;
   htmlContent: string;
   status: 'generating' | 'generated' | 'error';
   publishSlug?: string;
@@ -14,36 +16,36 @@ export interface ILaunchPage {
   updatedAt: Date;
 }
 
-export class LaunchPage {
-  static async create(pageData: {
+export class LaunchPage {  static async create(pageData: {
     userId: string;
     name: string;
     description?: string;
     tagline?: string;
+    colorPalette?: string;
+    theme?: string;
     htmlContent: string;
     status?: 'generating' | 'generated' | 'error';
   }): Promise<ILaunchPage> {
-    const { userId, name, description, tagline, htmlContent, status = 'generated' } = pageData;
+    const { userId, name, description, tagline, colorPalette, theme, htmlContent, status = 'generated' } = pageData;
 
     const query = `
-      INSERT INTO launch_pages (user_id, name, description, tagline, html_content, status)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, user_id as "userId", name, description, tagline, html_content as "htmlContent", 
-                status, publish_slug as "publishSlug", is_published as "isPublished",
-                created_at as "createdAt", updated_at as "updatedAt"
+      INSERT INTO launch_pages (user_id, name, description, tagline, color_palette, theme, html_content, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, user_id as "userId", name, description, tagline, color_palette as "colorPalette", 
+                theme, html_content as "htmlContent", status, publish_slug as "publishSlug", 
+                is_published as "isPublished", created_at as "createdAt", updated_at as "updatedAt"
     `;
     
-    const values = [userId, name, description, tagline, htmlContent, status];
+    const values = [userId, name, description, tagline, colorPalette, theme, htmlContent, status];
     const result = await pool.query(query, values);
     
     return result.rows[0];
   }
-
   static async findById(id: string): Promise<ILaunchPage | null> {
     const query = `
-      SELECT id, user_id as "userId", name, description, tagline, html_content as "htmlContent", 
-             status, publish_slug as "publishSlug", is_published as "isPublished",
-             created_at as "createdAt", updated_at as "updatedAt"
+      SELECT id, user_id as "userId", name, description, tagline, color_palette as "colorPalette", 
+             theme, html_content as "htmlContent", status, publish_slug as "publishSlug", 
+             is_published as "isPublished", created_at as "createdAt", updated_at as "updatedAt"
       FROM launch_pages 
       WHERE id = $1
     `;
@@ -51,12 +53,11 @@ export class LaunchPage {
     const result = await pool.query(query, [id]);
     return result.rows[0] || null;
   }
-
   static async findByUserId(userId: string): Promise<ILaunchPage[]> {
     const query = `
-      SELECT id, user_id as "userId", name, description, tagline, html_content as "htmlContent", 
-             status, publish_slug as "publishSlug", is_published as "isPublished",
-             created_at as "createdAt", updated_at as "updatedAt"
+      SELECT id, user_id as "userId", name, description, tagline, color_palette as "colorPalette",
+             theme, html_content as "htmlContent", status, publish_slug as "publishSlug", 
+             is_published as "isPublished", created_at as "createdAt", updated_at as "updatedAt"
       FROM launch_pages 
       WHERE user_id = $1
       ORDER BY created_at DESC

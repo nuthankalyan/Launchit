@@ -76,9 +76,16 @@ export default function Signup() {
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       
+      // Handle popup closed by user - don't show error, just reset loading state
+      if (error.code === 'auth/popup-closed-by-user') {
+        console.log('Popup was closed by user');
+        setLoading(false);
+        return;
+      }
+      
       // If popup fails (e.g., popup blocked), fall back to redirect
-      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
-        console.log('Popup failed, trying redirect method...');
+      if (error.code === 'auth/popup-blocked') {
+        console.log('Popup blocked, trying redirect method...');
         try {
           await signInWithGoogle();
           // Don't set loading to false here as redirect will reload the page

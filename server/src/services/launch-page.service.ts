@@ -6,8 +6,10 @@ export class LaunchPageService {  async createLaunchPage(pageData: {
     name: string;
     description?: string;
     tagline?: string;
+    colorPalette?: string;
+    theme?: string;
   }): Promise<ILaunchPage> {
-    const { userId, name, description, tagline } = pageData;
+    const { userId, name, description, tagline, colorPalette, theme } = pageData;
 
     // Create a placeholder entry with generating status
     const placeholder = await LaunchPage.create({
@@ -15,12 +17,14 @@ export class LaunchPageService {  async createLaunchPage(pageData: {
       name,
       description,
       tagline,
+      colorPalette,
+      theme,
       htmlContent: '<div>Generating...</div>',
       status: 'generating'
     });
 
     // Start the generation process asynchronously without awaiting it
-    this.generatePageContent(placeholder.id, name, description, tagline)
+    this.generatePageContent(placeholder.id, name, description, tagline, colorPalette, theme)
       .catch(error => {
         console.error('Error in background generation process:', error);
       });
@@ -54,12 +58,13 @@ export class LaunchPageService {  async createLaunchPage(pageData: {
     // Update status to generating
     await LaunchPage.updateById(id, { status: 'generating' });
 
-    try {
-      // Generate new HTML content
+    try {      // Generate new HTML content
       const htmlContent = await geminiService.generateLaunchPage({
         name: page.name,
         description: page.description,
-        tagline: page.tagline
+        tagline: page.tagline,
+        colorPalette: page.colorPalette,
+        theme: page.theme
       });
 
       // Update with new content
@@ -86,20 +91,22 @@ export class LaunchPageService {  async createLaunchPage(pageData: {
   async getPublishedPageBySlug(slug: string): Promise<ILaunchPage | null> {
     return LaunchPage.findBySlug(slug);
   }
-
   // Private method to handle the asynchronous generation process
   private async generatePageContent(
     pageId: string,
     name: string,
     description?: string,
-    tagline?: string
+    tagline?: string,
+    colorPalette?: string,
+    theme?: string
   ): Promise<void> {
-    try {
-      // Generate HTML content using Gemini AI
+    try {      // Generate HTML content using Gemini AI
       const htmlContent = await geminiService.generateLaunchPage({
         name,
         description,
-        tagline
+        tagline,
+        colorPalette,
+        theme
       });
 
       // Update the launch page with generated content

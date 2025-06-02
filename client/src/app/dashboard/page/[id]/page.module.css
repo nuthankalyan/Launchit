@@ -166,23 +166,13 @@
   color: #F5F5F5;
 }
 
-/* Published badge */
-.publishedBadge {
-  background: #16a34a;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
 /* View published link */
 .viewPublishedButton {
-  background: #16a34a;
+  background: #DD88CF;
   border: none;
   padding: 8px 16px;
   border-radius: 100px;
-  color: white;
+  color: #F5F5F5;
   text-decoration: none;
   font-weight: 400;
   cursor: pointer;
@@ -194,7 +184,7 @@
 }
 
 .viewPublishedButton:hover {
-  background: #15803d;
+  background: #4B164C;
 }
 
 /* Modal styles */
@@ -294,17 +284,21 @@
   border: 1px solid #bdbdbd;
   color: #616161;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 100px;
   font-weight: 500;
   cursor: pointer;
 }
-
+.cancelButton:hover {
+  background: rgb(255, 139, 139);
+  color: white;
+  
+}
 .publishConfirmButton {
   background: #4B164C;
   color: white;
   border: none;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 100px;
   font-weight: 500;
   cursor: pointer;
 }

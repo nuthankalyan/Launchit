@@ -19,11 +19,33 @@ interface LaunchPage {
   description?: string;
   tagline?: string;
   status: 'generating' | 'generated' | 'error';
+  htmlContent?: string;
   createdAt: string;
   updatedAt: string;
+  html?: string;
+  publishSlug?: string;
+  isPublished?: boolean;
+  colorPalette?: string;
+  theme?: string;
 }
 
 export default function Dashboard() {
+  // Define color palettes and theme options
+  const colorPalettes = [
+    { name: "Modern Blue", colors: ["#1A73E8", "#4285F4", "#8AB4F8"] },
+    { name: "Forest Green", colors: ["#0F9D58", "#34A853", "#7BCB98"] },
+    { name: "Ruby Red", colors: ["#DB4437", "#EA4335", "#F28B82"] },
+    { name: "Sunset Orange", colors: ["#FF5722", "#FF7043", "#FFAB91"] },
+    { name: "Royal Purple", colors: ["#673AB7", "#7E57C2", "#B39DDB"] },
+    { name: "Ocean Teal", colors: ["#009688", "#26A69A", "#80CBC4"] },
+    { name: "Midnight", colors: ["#121212", "#212121", "#424242"] },
+  ];
+  
+  const themeOptions = [
+    "Pastel", "Vintage", "Retro", "Neon", "Gold", 
+    "Light", "Dark", "Warm", "Cold"
+  ];
+
   const [user, setUser] = useState<User | null>(null);
   const [launchPages, setLaunchPages] = useState<LaunchPage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,10 +53,13 @@ export default function Dashboard() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
     // Modal state
   const [showFirstModal, setShowFirstModal] = useState(false);
-  const [showSecondModal, setShowSecondModal] = useState(false);
-  const [projectName, setProjectName] = useState("");
+  const [showSecondModal, setShowSecondModal] = useState(false);  const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [projectTagline, setProjectTagline] = useState("");
+  const [colorPalette, setColorPalette] = useState("");
+  const [theme, setTheme] = useState("");
+  const [showColorPaletteDropdown, setShowColorPaletteDropdown] = useState(false);
+  const [showThemeDropdown, setShowThemeDropdown] = useState(false);
     // Animation states
   const [firstModalAnimating, setFirstModalAnimating] = useState(false);
   const [secondModalAnimating, setSecondModalAnimating] = useState(false);
@@ -70,7 +95,51 @@ export default function Dashboard() {
         setFirstModalAnimating(false);
       }, 50);
     }, 400);
+  };  // Function to safely set HTML content to avoid XSS
+  const createSafeHTML = (html: string) => {
+    // Create a basic HTML structure with improved styles for better rendering
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            html, body { 
+              margin: 0; 
+              padding: 0;
+              width: 100%;
+              height: 100%;
+              overflow: hidden;
+            }
+            body {
+              transform: scale(0.4);
+              transform-origin: 0 0;
+              width: 250%;
+              height: 250%;
+            }
+            /* Ensure responsive design shows properly in small preview */
+            * { 
+              transition: none !important; 
+              animation: none !important;
+            }
+            /* Make elements more visible in the preview */
+            img, svg {
+              min-height: 20px;
+              min-width: 20px;
+            }
+            /* Ensure text is visible */
+            p, h1, h2, h3, h4, h5, h6, span, a {
+              color: inherit !important;
+            }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+      </html>
+    `;
   };
+
   useEffect(() => {
     const fetchProfile = async () => {
       if (!auth.isAuthenticated()) {
@@ -88,8 +157,25 @@ export default function Dashboard() {
           setUser(profileResponse.data.user);
         }
 
-        if (pagesResponse.success && pagesResponse.data) {
-          setLaunchPages(pagesResponse.data);
+        if (pagesResponse.success && pagesResponse.data) {          // Get pages
+          const pages = pagesResponse.data;
+            // For each page with status 'generated', extract the HTML content
+          const pagesWithHTML = pages.map(page => {
+            // Process pages with 'generated' status to ensure HTML content is available
+            if (page.status === 'generated') {
+              // First try to use htmlContent, then fall back to html property
+              const content = page.htmlContent || page.html || '';
+              return {
+                ...page,
+                // Store the content in both properties to ensure compatibility
+                html: content,
+                htmlContent: content
+              };
+            }
+            return page;
+          });
+          
+          setLaunchPages(pagesWithHTML);
         }
       } catch (error: any) {
         setError("Failed to load profile");
@@ -155,26 +241,10 @@ export default function Dashboard() {
       >
         <div className={styles.sidebarContent}>
           {/* Light/Dark theme toggle */}
-          <div className={styles.sidebarItem}>
-            <div className={styles.iconWrapper}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5"/>
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-              </svg>
-            </div>
-            {sidebarExpanded && <span className={styles.sidebarLabel}>Theme</span>}
-          </div>
+          
 
           {/* Search */}
-          <div className={styles.sidebarItem}>
-            <div className={styles.iconWrapper}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="M21 21l-4.35-4.35"/>
-              </svg>
-            </div>
-            {sidebarExpanded && <span className={styles.sidebarLabel}>Search</span>}
-          </div>          {/* My creations */}
+                  {/* My creations */}
           <div className={`${styles.sidebarItem} ${styles.active}`}>
             <div className={styles.iconWrapper}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -222,34 +292,54 @@ export default function Dashboard() {
             </div>
           </div>
         </header>        {/* Content Grid */}
-        <div className={styles.contentGrid}>          {/* Create new page card */}
-          <div className={`${styles.card} ${styles.createCard}`} onClick={() => setShowFirstModal(true)}>
-            <div className={styles.cardContent}>
-              <div className={styles.addIcon}>+</div>
-              <h3>Create new page</h3>
+        <div className={styles.contentGrid}>          {/* Create new page card */}          <div className={`${styles.card} ${styles.createCard}`} onClick={() => setShowFirstModal(true)}>
+            <div className={styles.previewFrame}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#DD88CF" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
             </div>
-          </div>          {/* Display user's launch pages */}
+            <h3 className={styles.projectName}>Create New Page</h3>
+          </div>{/* Display user's launch pages */}
           {launchPages.map((page) => (
             <div 
               key={page.id} 
               className={`${styles.card} ${styles.launchPageCard}`}
               onClick={() => window.location.href = `/dashboard/page/${page.id}`}
             >
-              <div className={styles.cardContent}>
-                <div className={styles.pageHeader}>
-                  <h3>{page.name}</h3>
-                 
-                </div>
-                {page.description && (
-                  <p className={styles.pageDescription}>{page.description}</p>
+              <div className={styles.previewFrame}>
+                {(page.html || page.htmlContent) && page.status === 'generated' ? (
+                  <>
+                    <div className={styles.previewOverlay}></div>
+                    <iframe 
+                      className={styles.previewIframe}
+                      srcDoc={createSafeHTML(page.html || page.htmlContent || '')}
+                      title={`Preview of ${page.name}`}
+                      sandbox="allow-scripts allow-same-origin"
+                      loading="eager"
+                      onLoad={(e) => {
+                        // Mark the iframe as loaded to potentially apply additional styling
+                        e.currentTarget.classList.add(styles.loaded);
+                      }}
+                    />
+                  </>
+                ) : (
+                  <div className={styles.previewLoading}>
+                    {page.status === 'generating' ? (
+                      <>
+                        <div className={styles.loadingSpinner}></div>
+                        <span>Generating...</span>
+                      </>
+                    ) : page.status === 'error' ? (
+                      'Generation Error'
+                    ) : (
+                      'Loading Preview'
+                    )}
+                  </div>
                 )}
-                {page.tagline && (
-                  <p className={styles.pageTagline}>"{page.tagline}"</p>
-                )}
-                <div className={styles.pageFooter}>
-                  <small>Created {new Date(page.createdAt).toLocaleDateString()}</small>
-                </div>
               </div>
+              <h3 className={styles.projectName}>{page.name}</h3>
             </div>
           ))}
 
@@ -347,7 +437,7 @@ export default function Dashboard() {
                     autoFocus
                   />
                 </div>
-                <div>
+                <div style={{ marginBottom: "24px" }}>
                   <label className={styles.label} htmlFor="projectTagline">
                     Project Tagline
                   </label>
@@ -359,7 +449,89 @@ export default function Dashboard() {
                     onChange={(e) => setProjectTagline(e.target.value)}
                   />
                 </div>
-              </div>              <div className={`${styles.modalActions} ${
+                {/* Color Palette Dropdown */}
+                <div style={{ marginBottom: "24px", position: "relative" }}>
+                  <label className={styles.label}>
+                    Choose color palette
+                  </label>
+                  <button 
+                    type="button"
+                    className={styles.dropdownButton}
+                    onClick={() => {
+                      setShowColorPaletteDropdown(!showColorPaletteDropdown);
+                      setShowThemeDropdown(false);
+                    }}
+                  >
+                    {colorPalette || "Choose color palette"} 
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </button>
+                  
+                  {showColorPaletteDropdown && (
+                    <div className={styles.dropdownMenu}>
+                      {colorPalettes.map((palette) => (
+                        <div 
+                          key={palette.name}
+                          className={styles.dropdownItem}
+                          onClick={() => {
+                            setColorPalette(palette.name);
+                            setShowColorPaletteDropdown(false);
+                          }}
+                        >
+                          <div>{palette.name}</div>
+                          <div className={styles.colorPaletteSample}>
+                            {palette.colors.map((color, index) => (
+                              <div
+                                key={index}
+                                className={styles.colorSample}
+                                style={{ backgroundColor: color }}
+                              ></div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Theme Dropdown */}
+                <div style={{ marginBottom: "16px", position: "relative" }}>
+                  <label className={styles.label}>
+                    Choose Theme
+                  </label>
+                  <button 
+                    type="button"
+                    className={styles.dropdownButton}
+                    onClick={() => {
+                      setShowThemeDropdown(!showThemeDropdown);
+                      setShowColorPaletteDropdown(false);
+                    }}
+                  >
+                    {theme || "Choose Theme"} 
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </button>
+                  
+                  {showThemeDropdown && (
+                    <div className={styles.dropdownMenu}>
+                      {themeOptions.map((themeName) => (
+                        <div 
+                          key={themeName}
+                          className={styles.dropdownItem}
+                          onClick={() => {
+                            setTheme(themeName);
+                            setShowThemeDropdown(false);
+                          }}
+                        >
+                          {themeName}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div><div className={`${styles.modalActions} ${
                 secondModalAnimating && animationDirection === 'backward' 
                   ? styles.modalContentSlideOutToRight 
                   : !secondModalAnimating ? styles.modalContentSlideInFromRight
@@ -372,12 +544,12 @@ export default function Dashboard() {
                   Back
                 </button>                <button 
                   className={styles.generateButton}                  onClick={() => {
-                    if (!projectDescription.trim()) return;
-
-                    // Store values before clearing form
+                    if (!projectDescription.trim()) return;                    // Store values before clearing form
                     const name = projectName;
                     const description = projectDescription;
                     const tagline = projectTagline;
+                    const selectedColorPalette = colorPalette;
+                    const selectedTheme = theme;
                     
                     // Close modal first for better UX
                     setShowSecondModal(false);
@@ -386,17 +558,20 @@ export default function Dashboard() {
                     setProjectName("");
                     setProjectDescription("");
                     setProjectTagline("");
+                    setColorPalette("");
+                    setTheme("");
                     
                     // Set a loading state if needed
                     setLoading(true);
                     
                     // This is blocking but very fast - just to get the page ID
                     (async () => {
-                      try {
-                        const response = await apiClient.createLaunchPage({
+                      try {                        const response = await apiClient.createLaunchPage({
                           name,
                           description,
-                          tagline
+                          tagline,
+                          colorPalette,
+                          theme
                         });
                         
                         if (response.success && response.data) {

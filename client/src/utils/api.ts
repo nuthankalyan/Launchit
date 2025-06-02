@@ -128,6 +128,8 @@ class ApiClient {
     name: string;
     description?: string;
     tagline?: string;
+    colorPalette?: string;
+    theme?: string;
   }): Promise<ApiResponse<any>> {
     return this.request('/launch-pages', {
       method: 'POST',
@@ -176,9 +178,16 @@ class ApiClient {
   getLaunchPagePreviewUrl(id: string): string {
     return `${this.baseURL}/launch-pages/${id}/preview`;
   }
-  
-  getPublishedPageUrl(slug: string): string {
-    return `${this.baseURL.replace('/api', '')}/${slug}`;
+    getPublishedPageUrl(slug: string): string {
+    // Use window.location to get the base URL of the frontend
+    const baseUrl = typeof window !== 'undefined' 
+      ? `${window.location.protocol}//${window.location.host}`
+      : process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+    return `${baseUrl}/${slug}`;
+  }
+
+  async getPublishedPage(slug: string): Promise<ApiResponse<any>> {
+    return this.request(`/launch-pages/published/${slug}`);
   }
 }
 
