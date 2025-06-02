@@ -2,8 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 
 // Validate item creation/update data
 export const validateItemData = (req: Request, res: Response, next: NextFunction): void => {
-  const { name, description } = req.body;
-  const errors = [];
+  const { name, description } = req.body;  const errors: string[] = [];
 
   if (req.method === 'POST') {
     // For POST requests, both name and description are required
@@ -66,7 +65,7 @@ export const validateItemId = (req: Request, res: Response, next: NextFunction):
 // Validate signup data
 export const validateSignup = (req: Request, res: Response, next: NextFunction): void => {
   const { username, email, password } = req.body;
-  const errors = [];
+  const errors: string[] = [];
 
   // Validate username
   if (!username) {
@@ -110,7 +109,7 @@ export const validateSignup = (req: Request, res: Response, next: NextFunction):
 // Validate login data
 export const validateLogin = (req: Request, res: Response, next: NextFunction): void => {
   const { email, password } = req.body;
-  const errors = [];
+  const errors: string[] = [];
 
   // Validate email
   if (!email) {

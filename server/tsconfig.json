@@ -1,5 +1,4 @@
-{
-  "compilerOptions": {
+{  "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
     "outDir": "./dist",
@@ -10,8 +9,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "sourceMap": true,
-    "declaration": true
-  },
-  "include": ["src/**/*"],
+    "declaration": true,
+    "noImplicitAny": false
+  },  "include": ["src/**/*", "src/types/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

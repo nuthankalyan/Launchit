@@ -22,9 +22,8 @@ export class User {
     avatar?: string;
   }): Promise<IUser> {
     const { username, email, password, googleId, avatar } = userData;
-    
-    // Hash password if provided
-    let hashedPassword = null;
+      // Hash password if provided
+    let hashedPassword: string | null = null;
     if (password) {
       hashedPassword = await bcrypt.hash(password, 12);
     }
@@ -95,8 +94,8 @@ export class User {
   }
 
   static async updateById(id: string, updates: Partial<IUser>): Promise<IUser | null> {
-    const fields = [];
-    const values = [];
+    const fields: string[] = [];
+    const values: any[] = [];
     let paramCount = 1;
 
     for (const [key, value] of Object.entries(updates)) {

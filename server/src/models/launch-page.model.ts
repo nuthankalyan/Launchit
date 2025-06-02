@@ -66,16 +66,19 @@ export class LaunchPage {  static async create(pageData: {
     const result = await pool.query(query, [userId]);
     return result.rows;
   }
-
   static async updateById(id: string, updates: Partial<Omit<ILaunchPage, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<ILaunchPage | null> {
-    const fields = [];
-    const values = [];
+    const fields: string[] = [];
+    const values: any[] = [];
     let paramCount = 1;
 
-    for (const [key, value] of Object.entries(updates)) {
-      if (value !== undefined) {
+    for (const [key, value] of Object.entries(updates)) {      if (value !== undefined) {
         // Convert camelCase to snake_case for database columns
-        const dbKey = key === 'htmlContent' ? 'html_content' : key;
+        let dbKey = key;
+        if (key === 'htmlContent') dbKey = 'html_content';
+        else if (key === 'colorPalette') dbKey = 'color_palette';
+        else if (key === 'publishSlug') dbKey = 'publish_slug';
+        else if (key === 'isPublished') dbKey = 'is_published';
+        
         fields.push(`${dbKey} = $${paramCount}`);
         values.push(value);
         paramCount++;
@@ -87,15 +90,13 @@ export class LaunchPage {  static async create(pageData: {
     }
 
     fields.push(`updated_at = NOW()`);
-    values.push(id);
-
-    const query = `
+    values.push(id);    const query = `
       UPDATE launch_pages 
       SET ${fields.join(', ')}
       WHERE id = $${paramCount}
-      RETURNING id, user_id as "userId", name, description, tagline, html_content as "htmlContent", 
-                status, publish_slug as "publishSlug", is_published as "isPublished",
-                created_at as "createdAt", updated_at as "updatedAt"
+      RETURNING id, user_id as "userId", name, description, tagline, color_palette as "colorPalette",
+                theme, html_content as "htmlContent", status, publish_slug as "publishSlug", 
+                is_published as "isPublished", created_at as "createdAt", updated_at as "updatedAt"
     `;
 
     const result = await pool.query(query, values);
@@ -107,12 +108,11 @@ export class LaunchPage {  static async create(pageData: {
     const result = await pool.query(query, [id]);
     return result.rowCount! > 0;
   }
-
   static async findBySlug(slug: string): Promise<ILaunchPage | null> {
     const query = `
-      SELECT id, user_id as "userId", name, description, tagline, html_content as "htmlContent", 
-             status, publish_slug as "publishSlug", is_published as "isPublished",
-             created_at as "createdAt", updated_at as "updatedAt"
+      SELECT id, user_id as "userId", name, description, tagline, color_palette as "colorPalette",
+             theme, html_content as "htmlContent", status, publish_slug as "publishSlug", 
+             is_published as "isPublished", created_at as "createdAt", updated_at as "updatedAt"
       FROM launch_pages 
       WHERE publish_slug = $1 AND is_published = true
     `;
@@ -121,7 +121,8 @@ export class LaunchPage {  static async create(pageData: {
     return result.rows[0] || null;
   }
 
-  static async publishBySlug(id: string, slug: string): Promise<ILaunchPage | null> {    // First check if the slug already exists
+  static async publishBySlug(id: string, slug: string): Promise<ILaunchPage | null> {
+    // First check if the slug already exists
     const checkQuery = `SELECT id FROM launch_pages WHERE publish_slug = $1`;
     const checkResult = await pool.query(checkQuery, [slug]);
     
@@ -134,9 +135,9 @@ export class LaunchPage {  static async create(pageData: {
       UPDATE launch_pages 
       SET publish_slug = $1, is_published = true, updated_at = NOW()
       WHERE id = $2
-      RETURNING id, user_id as "userId", name, description, tagline, html_content as "htmlContent", 
-                status, publish_slug as "publishSlug", is_published as "isPublished",
-                created_at as "createdAt", updated_at as "updatedAt"
+      RETURNING id, user_id as "userId", name, description, tagline, color_palette as "colorPalette",
+                theme, html_content as "htmlContent", status, publish_slug as "publishSlug", 
+                is_published as "isPublished", created_at as "createdAt", updated_at as "updatedAt"
     `;
     
     const result = await pool.query(query, [slug, id]);
