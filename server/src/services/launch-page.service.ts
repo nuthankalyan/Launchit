@@ -91,6 +91,10 @@ export class LaunchPageService {  async createLaunchPage(pageData: {
   async getPublishedPageBySlug(slug: string): Promise<ILaunchPage | null> {
     return LaunchPage.findBySlug(slug);
   }
+
+  async getAllPublishedPages(): Promise<ILaunchPage[]> {
+    return LaunchPage.getAllPublishedPages();
+  }
   // Private method to handle the asynchronous generation process
   private async generatePageContent(
     pageId: string,

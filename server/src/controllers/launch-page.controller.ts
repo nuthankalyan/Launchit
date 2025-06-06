@@ -460,5 +460,24 @@ export const launchPageController = {
         message: 'Server Error'
       });
     }
+  },
+
+  // Get all published pages
+  getAllPublishedPages: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const publishedPages = await launchPageService.getAllPublishedPages();
+      
+      res.status(200).json({
+        success: true,
+        data: publishedPages
+      });
+    } catch (error: any) {
+      console.error('Error fetching published pages:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch published pages',
+        error: error.message
+      });
+    }
   }
 };

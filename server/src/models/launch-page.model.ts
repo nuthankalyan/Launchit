@@ -121,6 +121,23 @@ export class LaunchPage {  static async create(pageData: {
     return result.rows[0] || null;
   }
 
+  static async getAllPublishedPages(): Promise<ILaunchPage[]> {
+    const query = `
+      SELECT lp.id, lp.user_id as "userId", lp.name, lp.description, lp.tagline, 
+             lp.color_palette as "colorPalette", lp.theme, lp.html_content as "htmlContent", 
+             lp.status, lp.publish_slug as "publishSlug", lp.is_published as "isPublished", 
+             lp.created_at as "createdAt", lp.updated_at as "updatedAt",
+             u.username as "creatorName"
+      FROM launch_pages lp
+      JOIN users u ON lp.user_id = u.id
+      WHERE lp.is_published = true
+      ORDER BY lp.created_at DESC
+    `;
+    
+    const result = await pool.query(query);
+    return result.rows;
+  }
+
   static async publishBySlug(id: string, slug: string): Promise<ILaunchPage | null> {
     // First check if the slug already exists
     const checkQuery = `SELECT id FROM launch_pages WHERE publish_slug = $1`;

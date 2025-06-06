@@ -27,6 +27,7 @@ interface LaunchPage {
   isPublished?: boolean;
   colorPalette?: string;
   theme?: string;
+  creatorName?: string; // Creator's username from joined users table
 }
 
 export default function Dashboard() {
@@ -48,9 +49,11 @@ export default function Dashboard() {
 
   const [user, setUser] = useState<User | null>(null);
   const [launchPages, setLaunchPages] = useState<LaunchPage[]>([]);
+  const [publishedPages, setPublishedPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [activeView, setActiveView] = useState<'myCreations' | 'explore'>('myCreations');
     // Modal state
   const [showFirstModal, setShowFirstModal] = useState(false);
   const [showSecondModal, setShowSecondModal] = useState(false);  const [projectName, setProjectName] = useState("");
@@ -139,7 +142,6 @@ export default function Dashboard() {
       </html>
     `;
   };
-
   useEffect(() => {
     const fetchProfile = async () => {
       if (!auth.isAuthenticated()) {
@@ -148,9 +150,11 @@ export default function Dashboard() {
       }
 
       try {
-        const [profileResponse, pagesResponse] = await Promise.all([
+        // Fetch user profile, user's launch pages, and all published pages
+        const [profileResponse, pagesResponse, publishedResponse] = await Promise.all([
           apiClient.getProfile(),
-          apiClient.getUserLaunchPages()
+          apiClient.getUserLaunchPages(),
+          apiClient.getAllPublishedPages()
         ]);
 
         if (profileResponse.success && profileResponse.data) {
@@ -176,6 +180,28 @@ export default function Dashboard() {
           });
           
           setLaunchPages(pagesWithHTML);
+        }
+        
+        // Store published pages from all users
+        if (publishedResponse.success && publishedResponse.data) {
+          const publishedPages = publishedResponse.data.map(page => {
+            // Process the HTML content similar to user's pages
+            const content = page.htmlContent || page.html || '';
+            // Check if we have all required fields for display
+            if (!page.publishSlug) {
+              console.warn('Published page missing publishSlug:', page.id);
+            }
+            return {
+              ...page,
+              html: content,
+              htmlContent: content
+            };
+          });
+          
+          setPublishedPages(publishedPages);
+          console.log(`Loaded ${publishedPages.length} published pages`);
+        } else {
+          console.error('Failed to fetch published pages:', publishedResponse.message);
         }
       } catch (error: any) {
         setError("Failed to load profile");
@@ -245,7 +271,7 @@ export default function Dashboard() {
 
           {/* Search */}
                   {/* My creations */}
-          <div className={`${styles.sidebarItem} ${styles.active}`}>
+          <div className={`${styles.sidebarItem} ${activeView === 'myCreations' ? styles.active : ''}`} onClick={() => setActiveView('myCreations')}>
             <div className={styles.iconWrapper}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -255,7 +281,7 @@ export default function Dashboard() {
           </div>
 
           {/* Explore */}
-          <div className={styles.sidebarItem}>
+          <div className={`${styles.sidebarItem} ${activeView === 'explore' ? styles.active : ''}`} onClick={() => setActiveView('explore')}>
             <div className={styles.iconWrapper}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/>
@@ -290,19 +316,23 @@ export default function Dashboard() {
             <div className={styles.avatarCircle}>
               {user?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
-          </div>
-        </header>        {/* Content Grid */}
-        <div className={styles.contentGrid}>          {/* Create new page card */}          <div className={`${styles.card} ${styles.createCard}`} onClick={() => setShowFirstModal(true)}>
-            <div className={styles.previewFrame}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#DD88CF" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="16" />
-                <line x1="8" y1="12" x2="16" y2="12" />
-              </svg>
+          </div>        </header>        {/* Content Grid */}
+        <div className={styles.contentGrid}>
+          {/* Create new page card - only show in My Creations view */}
+          {activeView === 'myCreations' && (
+            <div className={`${styles.card} ${styles.createCard}`} onClick={() => setShowFirstModal(true)}>
+              <div className={styles.previewFrame}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#DD88CF" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="16" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+              </div>
+              <h3 className={styles.projectName}>Create New Page</h3>
             </div>
-            <h3 className={styles.projectName}>Create New Page</h3>
-          </div>{/* Display user's launch pages */}
-          {launchPages.map((page) => (
+          )}
+          {/* Display user's launch pages */}
+          {activeView === 'myCreations' && launchPages.map((page) => (
             <div 
               key={page.id} 
               className={`${styles.card} ${styles.launchPageCard}`}
@@ -344,7 +374,86 @@ export default function Dashboard() {
           ))}
 
           {/* Show message if no pages */}
-          
+          {activeView === 'myCreations' && launchPages.length === 0 && (
+            <div className={styles.noPagesMessage}>
+              No pages found. Create a new page to get started.
+            </div>
+          )}          {/* Explore section - public pages */}
+          {activeView === 'explore' && (
+            <div className={styles.exploreSection} style={{ width: '100%' }}>
+              <h2 className={styles.exploreTitle}>Explore Public Pages</h2>
+                {/* Display published pages in a row layout */}
+              <div className={styles.exploreGrid}>
+                {publishedPages.length > 0 ? (
+                  publishedPages.map((page) => (
+                    <div 
+                      key={page.id} 
+                      className={`${styles.card} ${styles.launchPageCard}`}
+                      onClick={() => {
+                      // Use the publishSlug to navigate to the published page in a new tab
+                      if (page.publishSlug) {
+                        window.open(`/${page.publishSlug}`, '_blank', 'noopener,noreferrer');
+                      } else {
+                        // Fallback to the editor page if no publishSlug exists
+                        window.location.href = `/dashboard/page/${page.id}`;
+                        console.warn('Published page missing publishSlug:', page.id);
+                      }
+                      }}
+                    >
+                      <div className={styles.previewFrame}>
+                      {(page.html || page.htmlContent) && page.status === 'generated' ? (
+                        <>
+                        <div className={styles.previewOverlay}></div>
+                        <iframe 
+                          className={styles.previewIframe}
+                          srcDoc={createSafeHTML(page.html || page.htmlContent || '')}
+                          title={`Preview of ${page.name}`}
+                          sandbox="allow-scripts allow-same-origin"
+                          loading="eager"
+                          onLoad={(e) => {
+                          // Mark the iframe as loaded to potentially apply additional styling
+                          e.currentTarget.classList.add(styles.loaded);
+                          }}
+                        />
+                        </>
+                      ) : (
+                        <div className={styles.previewLoading}>
+                        {page.status === 'generating' ? (
+                          <>
+                          <div className={styles.loadingSpinner}></div>
+                          <span>Generating...</span>
+                          </>
+                        ) : page.status === 'error' ? (
+                          'Generation Error'
+                        ) : (
+                          'Loading Preview'
+                        )}
+                        </div>
+                      )}
+                      </div>
+                      <div className={styles.cardInfo}>
+                      <h3 className={styles.projectName}>{page.name}</h3>
+                      {page.creatorName && (
+                        <div className={styles.creatorInfo}>
+                        <span className={styles.creatorLabel}>by </span>
+                        <span className={styles.creatorName}>{page.creatorName}</span>
+                        </div>
+                      )}
+                      </div>
+                    </div>
+                  ))                ) : (
+                  <div className={styles.noPagesMessage}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M8 15h8M9 9h.01M15 9h.01"/>
+                    </svg>
+                    <p>No published pages found</p>
+                    <p className={styles.noPagesSubtext}>Switch to "My Creations" to create and publish your own pages</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>{/* First Modal: Project Name */}
         {showFirstModal && (
           <div className={styles.modalOverlay}>
@@ -469,7 +578,7 @@ export default function Dashboard() {
                   </button>
                   
                   {showColorPaletteDropdown && (
-                    <div className={styles.dropdownMenu}>
+                    <div className={styles.dropdownMenu} style={{ position: 'absolute', zIndex: 2000 }}>
                       {colorPalettes.map((palette) => (
                         <div 
                           key={palette.name}
@@ -497,7 +606,7 @@ export default function Dashboard() {
                 
                 {/* Theme Dropdown */}
                 <div style={{ marginBottom: "16px", position: "relative" }}>
-                  <label className={styles.label}>
+                  <label className={styles.label} htmlFor="projectTheme">
                     Choose Theme
                   </label>
                   <button 
@@ -515,7 +624,7 @@ export default function Dashboard() {
                   </button>
                   
                   {showThemeDropdown && (
-                    <div className={styles.dropdownMenu}>
+                    <div className={styles.dropdownMenu} style={{ position: 'absolute', zIndex: 2000 }}>
                       {themeOptions.map((themeName) => (
                         <div 
                           key={themeName}

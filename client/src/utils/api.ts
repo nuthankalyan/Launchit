@@ -168,6 +168,10 @@ class ApiClient {
     });
   }
 
+  async getAllPublishedPages(): Promise<ApiResponse<any[]>> {
+    return this.request('/launch-pages/published');
+  }
+
   async publishLaunchPage(id: string, slug: string): Promise<ApiResponse<any>> {
     return this.request(`/launch-pages/${id}/publish`, {
       method: 'POST',
