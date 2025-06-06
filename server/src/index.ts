@@ -40,9 +40,22 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 })); // Security headers with relaxed CSP for development
 app.use(cors({
-  origin: config.cors.origin,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = Array.isArray(config.cors.origin) 
+      ? config.cors.origin 
+      : [config.cors.origin];
+      
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
-})); // Enable CORS
+})); // Enable CORS with multiple origins
 app.use(morgan(isDevelopment() ? 'dev' : 'combined')); // Logging
 app.use(requestLogger); // Custom request logger
 app.use(express.json()); // Parse JSON bodies

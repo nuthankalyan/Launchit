@@ -17,10 +17,9 @@ export const config = {
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key-change-this-in-production',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d'
   } as const,
-  
-  // Cors settings
+    // Cors settings
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000'
+    origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'https://launchit-xi.vercel.app']
   },
   
   // API settings
