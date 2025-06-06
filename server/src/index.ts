@@ -34,7 +34,7 @@ app.use(helmet({
       fontSrc: ["'self'", "data:"],
       connectSrc: ["'self'"],
       frameSrc: ["'self'"],
-      frameAncestors: ["'self'", "localhost:3000"]
+      frameAncestors: ["'self'", "localhost:3000", "localhost:5000", "https://launchit-xi.vercel.app"]
     }
   },
   crossOriginEmbedderPolicy: false

@@ -93,15 +93,13 @@ export const launchPageController = {
       if (!launchPage) {
         res.status(404).send('<html><body><h1>Page not found</h1></body></html>');
         return;
-      }
-
-      // Set headers to allow iframe embedding
+      }      // Set headers to allow iframe embedding
       res.setHeader('Content-Type', 'text/html');
       res.setHeader('X-Frame-Options', 'SAMEORIGIN'); // Allow embedding from same origin
       res.removeHeader('X-Frame-Options'); // Remove default helmet X-Frame-Options
       res.setHeader('Content-Security-Policy', `
         default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *;
-        frame-ancestors 'self' localhost:3000 localhost:5000;
+        frame-ancestors 'self' localhost:3000 localhost:5000 https://launchit-xi.vercel.app;
         script-src 'self' 'unsafe-inline' 'unsafe-eval' *;
         style-src 'self' 'unsafe-inline' *;
         img-src 'self' data: blob: *;
